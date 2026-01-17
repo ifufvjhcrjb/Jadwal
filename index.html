@@ -2,57 +2,166 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Minecraft Skin Viewer 3D</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jadwal Pelajaran</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
 <style>
 body {
   margin: 0;
-  background: #0b0b0b;
-  color: white;
-  font-family: sans-serif;
+  font-family: 'Poppins', sans-serif;
+  background: #020617;
+  color: #e5e7eb;
+  padding: 16px;
 }
-#ui {
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  z-index: 10;
+
+.header {
+  text-align: center;
+  margin-bottom: 20px;
+}
+.header h1 {
+  margin: 0;
+}
+.header .hari {
+  color: #38bdf8;
+}
+.header .jam {
+  font-size: 14px;
+  opacity: .8;
+}
+
+.card {
+  background: #020617;
+  border: 1px solid #1e293b;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 6px 16px rgba(0,0,0,.4);
+}
+
+/* JAM AKTIF → KUNING */
+.card.aktif {
+  background: linear-gradient(135deg, #facc15, #eab308);
+  color: #020617;
+  box-shadow: 0 0 20px #facc15;
+}
+
+/* ISTIRAHAT NORMAL */
+.card.istirahat {
+  opacity: .75;
+}
+
+.jamke {
+  font-size: 13px;
+}
+.mapel {
+  font-size: 18px;
+  font-weight: 600;
+}
+.waktu {
+  font-size: 13px;
+  opacity: .85;
 }
 </style>
 </head>
 <body>
 
-<div id="ui">
-  <input type="file" id="skinInput" accept="image/png">
+<div class="header">
+  <h1>📚 Jadwal Pelajaran</h1>
+  <div class="hari" id="hari"></div>
+  <div class="jam" id="clock"></div>
 </div>
 
-<canvas id="skinViewer"></canvas>
+<div id="jadwal"></div>
 
-<script type="module">
-import { SkinViewer } from "https://cdn.jsdelivr.net/npm/skinview3d@3.1.0/dist/skinview3d.es.js";
-
-const viewer = new SkinViewer({
-  canvas: document.getElementById("skinViewer"),
-  width: window.innerWidth,
-  height: window.innerHeight,
-  skin: null
-});
-
-viewer.zoom = 0.8;
-viewer.controls.enableRotate = true;
-viewer.controls.enableZoom = true;
-
-document.getElementById("skinInput").addEventListener("change", e => {
-  const file = e.target.files[0];
-  if (!file) return;
-
-  const url = URL.createObjectURL(file);
-  viewer.loadSkin(url);
-});
-
-window.addEventListener("resize", () => {
-  viewer.width = window.innerWidth;
-  viewer.height = window.innerHeight;
-});
+<script>
+  // JAM PELAJARAN
+  const jamPelajaran = [
+    ["07:00", "07:40"],
+    ["07:40", "08:20"],
+    ["08:20", "09:00"],
+    ["09:00", "09:40"],
+    ["09:40", "09:55"],
+    ["09:55", "10:35"],
+    ["10:35", "11:15"],
+    ["11:15", "11:55"],
+    ["11:55", "12:25"],
+    ["12:25", "13:05"],
+    ["13:05", "13:40"],
+    ["13:40", "14:15"],
+    ["14:15", "14:50"],
+    ["14:50", "15:30"]
+  ];
+  
+  // KODE MAPEL
+  const mapelKode = {
+    "-1": "LIBUR",
+    "0": "ISTIRAHAT",
+    "1": "B.INDO",
+    "2": "PJOK",
+    "3": "MTK",
+    "4": "PAI",
+    "5": "B.INGGRIS",
+    "6": "B.JAWA",
+    "7": "PP",
+    "8": "KWH",
+    "9": "SEJARAH",
+    "10": "PK",
+    "11": "KK.LISTRIK",
+    "12": "KK.SASIS",
+    "13": "KK.MESIN",
+    "14": "MTK PLHN"
+  };
+  
+  // JADWAL (PAKAI ANGKA 🔥)
+  const jadwal = {
+    Senin: [-1],
+    Selasa: [7,7,14,14,0,4,4,14,0,14,1,1],
+    Rabu: [6,6,2,2,0,3,3,5,0,5,5],
+    Kamis: [8,8,9,9,0,10,10],
+    Jumat: [11, 11, 11, 11, 0, 11,11], 
+    Sabtu: [12,12,12,12,0,12,12,13,0,13,13,13,13,13]
+  };
+  
+  const hariNama = ["Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
+  const now = new Date();
+  const hariIni = hariNama[now.getDay()];
+  document.getElementById("hari").innerText = "Hari: " + hariIni;
+  
+  // JAM REALTIME
+  setInterval(() => {
+    document.getElementById("clock").innerText =
+      new Date().toLocaleTimeString("id-ID");
+  }, 1000);
+  
+  const waktuSekarang = now.getHours() * 60 + now.getMinutes();
+  const container = document.getElementById("jadwal");
+  
+  (jadwal[hariIni] || []).forEach((kode, i) => {
+    const jam = jamPelajaran[i];
+    if (!jam) return;
+    
+    const mapel = mapelKode[kode];
+    const mulai = jam[0];
+    const selesai = jam[1];
+    
+    const m = parseInt(mulai.split(":")[0]) * 60 + parseInt(mulai.split(":")[1]);
+    const s = parseInt(selesai.split(":")[0]) * 60 + parseInt(selesai.split(":")[1]);
+    
+    const card = document.createElement("div");
+    card.className = "card";
+    
+    if (kode === 0) card.classList.add("istirahat");
+    if (waktuSekarang >= m && waktuSekarang <= s) card.classList.add("aktif");
+    
+    card.innerHTML = `
+    <div class="jamke">Jam ke-${i+1}</div>
+    <div class="mapel">${mapel}</div>
+    <div class="waktu">${mulai} - ${selesai}</div>
+  `;
+    container.appendChild(card);
+  });
 </script>
 
 </body>
