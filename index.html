@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Minecraft Skin Viewer 3D</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+  margin: 0;
+  background: #0b0b0b;
+  color: white;
+  font-family: sans-serif;
+}
+#ui {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+}
+</style>
+</head>
+<body>
+
+<div id="ui">
+  <input type="file" id="skinInput" accept="image/png">
+</div>
+
+<canvas id="skinViewer"></canvas>
+
+<script type="module">
+import { SkinViewer } from "https://cdn.jsdelivr.net/npm/skinview3d@3.1.0/dist/skinview3d.es.js";
+
+const viewer = new SkinViewer({
+  canvas: document.getElementById("skinViewer"),
+  width: window.innerWidth,
+  height: window.innerHeight,
+  skin: null
+});
+
+viewer.zoom = 0.8;
+viewer.controls.enableRotate = true;
+viewer.controls.enableZoom = true;
+
+document.getElementById("skinInput").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const url = URL.createObjectURL(file);
+  viewer.loadSkin(url);
+});
+
+window.addEventListener("resize", () => {
+  viewer.width = window.innerWidth;
+  viewer.height = window.innerHeight;
+});
+</script>
+
+</body>
+</html>
